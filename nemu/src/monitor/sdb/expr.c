@@ -2,12 +2,15 @@
 #include "cpu/decode.h"
 #include <assert.h>
 #include <isa.h>
+#include "generated/autoconf.h"
+#include "memory/paddr.h"
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
@@ -32,8 +35,13 @@ static struct rule {
   {"/", '/'},         // divide
   {"\\(", '('},         // left parenthese
   {"\\)", ')'},         // right parenthese
-  {"[0-9]+", 'n'},         // plus
+  {"0x[0-9, a-f]+", 'x'},    // hex nums
+  {"\\$[$,0-9,a-z]{2,3}", 'r'},     // registers
+  {"[0-9]+", 'n'},         // nums
   {"==", TK_EQ},        // equal
+  {"!=", '!'},        // not equal
+  {"&&", '&'},        // and
+  {"||", '|'},        // or
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -76,11 +84,16 @@ static bool make_token(char *e) {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-        char *substr_start = e + position;
+     //   char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        if (substr_len >= 31) {
+          printf("The expression is too long!\n");
+          return false;
+        }
+
+     // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+     //     i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -95,10 +108,16 @@ static bool make_token(char *e) {
           case '/':
           case '(':
           case ')':
+          case '!':
+          case '&':
+          case '|':
+          case TK_EQ:
             // set the type only
             tokens[nr_token++].type = rules[i].token_type;
             break;
           case 'n':
+          case 'r':
+          case 'x':
             // record the str
             tokens[nr_token].type = rules[i].token_type;
             strncpy(tokens[nr_token].str, e + position, substr_len);
@@ -146,10 +165,11 @@ bool check_parentheses(int p, int q, bool *success) {
 }
 
 int get_main_oprand(int p, int q, bool *success) {
-  int ret = TK_NOTYPE;
-  int pos = p;
+  int pos = p - 1;
+  int level = 0;
   for (int i = p; i <= q; i++) {
     int c;
+    int d;
     switch (c = tokens[i].type) {
       case '(':
         i++;
@@ -168,16 +188,44 @@ int get_main_oprand(int p, int q, bool *success) {
         i--;
       break;
       case '*':
+        if (i == p) {
+          break;
+        } else {
+          d = tokens[i - 1].type;
+          if (d != 'x' && d != 'n' && d != 'r') {
+            break;
+          }
+        }
       case '/':
-        if (ret == TK_NOTYPE || ret == '*' || ret == '/') {
-          ret = c;
+        if (level <= 1) {
           pos = i;
+          level = 1;
         }
         break;
       case '+':
       case '-':
-        ret = c;
-        pos = i;
+        if (level <= 2) {
+          pos = i;
+          level = 2;
+        }
+        break;
+      case TK_EQ:
+      case '!':
+        if (level <= 3) {
+          pos = i;
+          level = 3;
+        }
+      case '&':
+        if (level <= 4) {
+          pos = i;
+          level = 4;
+        }
+      case '|':
+        if (level <= 5) {
+          pos = i;
+          level = 5;
+        }
+
         break;
     }
   }
@@ -198,11 +246,21 @@ word_t eval(int p, int q, bool *success) {
       return 0;
     }
     // when the token point to the wrong type
-    if (tokens[p].type != 'n') {
-      *success = false;
-      return 0;
+    if (tokens[p].type == 'n') {
+      return atoi(tokens[p].str);
+    } else if (tokens[p].type == 'r') {
+      return isa_reg_str2val(tokens[p].str + 1, success);
+    } else if(tokens[p].type == 'x') {
+      word_t hex_r = 0;
+      int a = sscanf(tokens[p].str + 2, "%x", &hex_r);
+      if (a != 1) {
+        *success = false;
+      }
+      return hex_r;
     }
-    return atoi(tokens[p].str);
+
+    *success = false;
+    return 0;
   }
   else if (check_parentheses(p, q, success) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
@@ -221,6 +279,10 @@ word_t eval(int p, int q, bool *success) {
       return 0;
     }
     int op = get_main_oprand(p, q, success);
+    if (op == p - 1) {
+      word_t val_resolve = eval(p + 1, q, success);
+      return paddr_read(val_resolve, 4);
+    }
     word_t val1 = eval(p, op - 1, success);
     word_t val2 = eval(op + 1, q, success);
 
@@ -229,6 +291,10 @@ word_t eval(int p, int q, bool *success) {
       case '-': return val1 - val2;
       case '*': return val1 * val2;
       case '/': return val1 / val2;
+      case '!': return val1 != val2;
+      case '&': return val1 && val2;
+      case '|': return val1 || val2;
+      case TK_EQ: return val1 == val2;
       default: return 0;
     }
   }

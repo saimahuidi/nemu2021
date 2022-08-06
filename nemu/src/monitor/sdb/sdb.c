@@ -3,6 +3,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 #include "common.h"
 #include "memory/paddr.h"
 #include "sdb.h"
@@ -45,7 +47,6 @@ static int cmd_q(char *args) {
 static int cmd_si(char *args) {
   int count = 0;
   if (args == NULL) {
-    printf("lack some args\n");
     count = 1;
   } else {
     // get the token
@@ -70,7 +71,7 @@ static int cmd_info(char *args) {
       isa_reg_display();
       break;
     case 'w':
-      isa_reg_display();
+      print_watchpoint();
       break;
     default:
       printf("No such subcmd!");
@@ -97,6 +98,10 @@ static int cmd_x(char *args) {
   word_t res = expr(exp, &success);
   if (!success) {
     printf("expression has error\n");
+    return 0;
+  }
+  if (res < 0x80000000 || res >= 0x88000000) {
+    printf("The memory out of bound!\n");
     return 0;
   }
   // print the memory
@@ -129,10 +134,36 @@ static int cmd_p(char *args) {
 }
 
 static int cmd_w(char *args) {
+  if (args == NULL) {
+    printf("lack some args\n");
+    return 0;
+  }
+  bool success = true;
+  word_t res = expr(args, &success);
+  if (success) {
+    WP *new_wp = new_up();
+    strcpy(new_wp->expr, args);
+    new_wp->res  = res;
+    printf("Set the watchpoint NO.%d\n", new_wp->NO);
+    printf("current value: %d\n", res);
+  } else {
+    printf("The expression has something wrong!\n");
+  }
   return 0;
 }
 
 static int cmd_d(char *args) {
+  if (args == NULL) {
+    printf("lack some args\n");
+    return 0;
+  }
+  int NO;
+  int a = sscanf(args, "%d", &NO);
+  if (a != 1) {
+    printf("expression has something wrong.\n");
+    return 0;
+  }
+  free_wp(NO);
   return 0;
 }
 

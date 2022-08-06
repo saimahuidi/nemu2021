@@ -143,6 +143,10 @@ config ITRACE_COND
   depends on ITRACE
   string "Only trace instructions when the condition is true"
   default "true"
+  
+config WATCHPOINT
+  bool "open the function of watchpoint"
+  default y
 
 
 config DIFFTEST
