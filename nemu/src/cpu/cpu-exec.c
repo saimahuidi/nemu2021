@@ -3,7 +3,10 @@
 #include <cpu/difftest.h>
 #include <isa-all-instr.h>
 #include <locale.h>
+#include <stdio.h>
+#include <string.h>
 #include "../monitor/sdb/sdb.h"
+#include "macro.h"
 
 
 /* The assembly code of instructions executed is only output to the screen
@@ -12,23 +15,31 @@
  * You can modify this value as you want.
  */
 #define MAX_INSTR_TO_PRINT 10
+#define IRINGBUFSIZE       16
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_instr = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 const rtlreg_t rzero = 0;
-rtlreg_t tmp_reg[4];
+rtlreg_t tmp_reg[5];
+char iringbuf[IRINGBUFSIZE][128] = {{'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, \
+                          {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}};
+int iringbuf_index = 0;
 
 void device_update();
 void fetch_decode(Decode *s, vaddr_t pc);
+void display_iringbuf();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
+
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) log_write("%s\n", _this->logbuf);
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
+
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
 #ifdef CONFIG_WATCHPOINT
   check_wp();
 #endif
@@ -86,6 +97,10 @@ void fetch_decode(Decode *s, vaddr_t pc) {
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
       MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.instr.val, ilen);
+  #ifdef CONFIG_IRINGBUF
+  strcpy(iringbuf[iringbuf_index], s->logbuf);
+  iringbuf_index = (iringbuf_index + 1) % IRINGBUFSIZE;
+  #endif
 #endif
 }
 
@@ -117,6 +132,7 @@ void cpu_exec(uint64_t n) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
     case NEMU_END: case NEMU_ABORT:
+      IFDEF(CONFIG_IRINGBUF, display_iringbuf());
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ASNI_FMT("ABORT", ASNI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ASNI_FMT("HIT GOOD TRAP", ASNI_FG_GREEN) :
@@ -124,5 +140,14 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT: statistic();
+  }
+}
+void display_iringbuf() {
+  for (int i = 0; i < IRINGBUFSIZE; i++) {
+    if (i == iringbuf_index) {
+      printf("  -->%s\n", iringbuf[i]);
+    } else {
+      printf("     %s\n", iringbuf[i]);
+    }
   }
 }

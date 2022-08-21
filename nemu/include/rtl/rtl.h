@@ -4,7 +4,7 @@
 #include <cpu/decode.h>
 
 extern const rtlreg_t rzero;
-extern rtlreg_t tmp_reg[4];
+extern rtlreg_t tmp_reg[5];
 
 #define dsrc1 (id_src1->preg)
 #define dsrc2 (id_src2->preg)
@@ -13,7 +13,8 @@ extern rtlreg_t tmp_reg[4];
 #define s1    (&tmp_reg[1])
 #define s2    (&tmp_reg[2])
 #define t0    (&tmp_reg[3])
-#define rz (&rzero)
+#define t1    (&tmp_reg[4])
+#define rz    (&rzero)
 
 #define def_rtl(name, ...) void concat(rtl_, name)(Decode *s, __VA_ARGS__)
 

@@ -41,7 +41,7 @@ static struct rule {
   {"==", TK_EQ},        // equal
   {"!=", '!'},        // not equal
   {"&&", '&'},        // and
-  {"||", '|'},        // or
+  {"\\|\\|", '|'},        // or
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -84,7 +84,7 @@ static bool make_token(char *e) {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-     //   char *substr_start = e + position;
+      //  char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
         if (substr_len >= 31) {
@@ -92,15 +92,14 @@ static bool make_token(char *e) {
           return false;
         }
 
-     // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-     //     i, rules[i].regex, position, substr_len, substr_len, substr_start);
+    //  Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+    //      i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-
         switch (rules[i].token_type) {
           case '+':
           case '-':

@@ -2,6 +2,7 @@
 #define __RTL_BASIC_H__
 
 #include "c_op.h"
+#include "common.h"
 #include <memory/vaddr.h>
 
 /* RTL basic instructions */
@@ -21,7 +22,6 @@
   def_rtl_compute_imm(name) \
 
 // compute
-
 def_rtl_compute_reg_imm(add)
 def_rtl_compute_reg_imm(sub)
 def_rtl_compute_reg_imm(and)
