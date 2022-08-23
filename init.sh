@@ -45,7 +45,6 @@ function init_no_git() {
   git commit --no-verify --allow-empty -am "$1 $version initialized without tracing"$'\n\n'"$log"
 }
 
-    init_no_git fceux-am
 case $1 in
   nemu)
     init nemu NEMU_HOME

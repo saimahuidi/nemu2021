@@ -1,3 +1,4 @@
+#include <SDL2/SDL_scancode.h>
 #include <device/map.h>
 #include <utils.h>
 

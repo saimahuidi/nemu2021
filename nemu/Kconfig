@@ -143,6 +143,10 @@ config IRINGBUF
   depends on ITRACE
   bool "Open the iringbuf"
   default y
+    
+config DTRACE
+  bool "enable device tracer"
+  default y
 
 config ITRACE_COND
   depends on ITRACE
