@@ -1,4 +1,5 @@
 #include <common.h>
+#include <stdio.h>
 
 void init_mm(void);
 void init_device(void);
@@ -32,6 +33,5 @@ int main() {
 #ifdef HAS_CTE
   yield();
 #endif
-
   panic("Should not reach here");
 }

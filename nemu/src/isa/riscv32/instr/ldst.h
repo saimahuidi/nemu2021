@@ -1,7 +1,10 @@
 #include "cpu/decode.h"
 #include "cpu/exec.h"
 #include "debug.h"
+#include "isa.h"
+#include "rtl-basic.h"
 #include "rtl/rtl.h"
+#include <stdio.h>
 
 def_EHelper(lb) {
   rtl_lms(s, ddest, dsrc1, id_src2->imm, 1);
@@ -64,4 +67,72 @@ def_EHelper(bltu) {
 def_EHelper(bgeu) {
   rtl_addi(s, s0, &s->pc, id_src2->simm);
   rtl_jrelop(s, RELOP_GEU, ddest, dsrc1, *s0);
+}
+
+def_EHelper(ecall) {
+  *s0 = isa_raise_intr(8, s->pc);
+  rtl_jr(s, s0);
+}
+
+def_EHelper(mret) {
+  rtl_j(s, cpu.mepc + 4);
+}
+
+def_EHelper(csrrw) {
+  switch (id_src2->imm) {
+    case 0x305:
+      *s0 = cpu.mtvec;
+      cpu.mtvec = *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x300:
+      *s0 = cpu.mstatus;
+      cpu.mstatus = *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x341:
+      *s0 = cpu.mepc;
+      cpu.mepc = *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x342:
+      *s0 = cpu.mcause;
+      cpu.mcause = *dsrc1;
+      *ddest = *s0;
+      break;
+    default:
+      panic("no implement\n");
+  }
+}
+
+def_EHelper(csrrs) {
+  switch (id_src2->imm) {
+    case 0x300:
+      *s0 = cpu.mstatus;
+      cpu.mstatus = *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x341:
+      *s0 = cpu.mepc;
+      cpu.mepc = *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x342:
+      *s0 = cpu.mcause;
+      cpu.mcause = *dsrc1;
+      *ddest = *s0;
+      break;
+  }
+}
+
+def_EHelper(csrrwi) {
+
+}
+
+def_EHelper(csrrsi) {
+
+}
+
+def_EHelper(csrrci) {
+
 }

@@ -9,6 +9,7 @@ f(inv) f(nemu_trap) f(auipc) f(jal) f(jalr) \
 f(addi) f(add) f(sub) f(xor) f(or) f(and) f(xori) f(andi) f(ori) \
  f(beq) f(bne) f(blt) f(bge) f(bltu) f(bgeu) \
 f(slt) f(sltu) f(slti) f(sltiu) \
-f(srai) f(sll) f(slli)  f(srli) f(srl) f(sra) 
+f(srai) f(sll) f(slli)  f(srli) f(srl) f(sra) \
+f(ecall) f(mret) f(csrrw) f(csrrs) f(csrrwi) f(csrrsi) f(csrrci)
 
 def_all_EXEC_ID();

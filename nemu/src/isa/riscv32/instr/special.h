@@ -1,3 +1,5 @@
+#include "cpu/exec.h"
+#include "isa.h"
 def_EHelper(inv) {
   rtl_hostcall(s, HOSTCALL_INV, NULL, NULL, NULL, 0);
 }
