@@ -104,7 +104,7 @@ Navy假设操作系统提供以下设备文件的支持:
 
 例如一个合法的 `/proc/dispinfo`文件例子如下:
 ```
-WIDTH : 640
+WIDTH :640
 HEIGHT:480
 ```
 

@@ -1,6 +1,7 @@
 #include <nterm.h>
 #include <SDL.h>
 #include <SDL_bdf.h>
+#include <unistd.h>
 
 static const char *font_fname = "/share/fonts/Courier-7.bdf";
 static BDF_Font *font = NULL;
@@ -11,12 +12,14 @@ void builtin_sh_run();
 void extern_app_run(const char *app_path);
 
 int main(int argc, char *argv[]) {
+  setenv("PATH", "/bin", 1);
   SDL_Init(0);
   font = new BDF_Font(font_fname);
 
   // setup display
   int win_w = font->w * W;
   int win_h = font->h * H;
+  printf("win_w = %d wind_h = %d\n", win_w, win_h);
   screen = SDL_SetVideoMode(win_w, win_h, 32, SDL_HWSURFACE);
 
   term = new Terminal(W, H);
@@ -44,7 +47,6 @@ void refresh_terminal() {
         needsync = 1;
       }
   term->clear();
-
   static uint32_t last = 0;
   static int flip = 0;
   uint32_t now = SDL_GetTicks();

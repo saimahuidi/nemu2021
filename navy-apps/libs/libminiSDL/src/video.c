@@ -1,18 +1,58 @@
 #include <NDL.h>
 #include <sdl-video.h>
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+
+  int x, xs, y, ys, w, ws, h, hs;
+  uint32_t *bufd = (uint32_t *) dst->pixels;
+  uint32_t *bufs = (uint32_t *) src->pixels;
+
+  if (!dstrect) {
+    x = 0, y = 0, w = dst->w, h = dst->h;
+  } else {
+    x = dstrect->x, y = dstrect->y, w = dstrect->w, h = dstrect->h;
+  }
+
+  if (!srcrect) {
+    xs = 0, ys = 0, ws = src->w, hs = src->h;
+  } else {
+    xs = srcrect->x, ys = srcrect->y, ws = srcrect->w, hs = srcrect->h;
+  }
+
+  for (int i = 0; i < hs; i++) {
+    for (int j = 0; j < ws; j++) {
+      int posd = (i + y) * dst->w + j + x; 
+      int poss = (i + ys) * src->w + j + xs; 
+      bufd[posd] = bufs[poss];
+    }
+  }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  int x, y, w, h;
+  if (!dstrect) {
+    x = 0, y = 0, w = dst->w, h = dst->h;
+  } else {
+    x = dstrect->x, y = dstrect->y, w = dstrect->w, h = dstrect->h;
+  }
+  uint32_t *buf = (uint32_t *) dst->pixels;
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
+      int pos = (i + y) * dst->w + j + x; 
+      buf[pos] = color;
+    }
+  }
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  NDL_DrawRect(s->pixels, x, y, w, h);
 }
 
 // APIs below are already implemented.
@@ -91,7 +131,9 @@ void SDL_FreeSurface(SDL_Surface *s) {
 }
 
 SDL_Surface* SDL_SetVideoMode(int width, int height, int bpp, uint32_t flags) {
-  if (flags & SDL_HWSURFACE) NDL_OpenCanvas(&width, &height);
+  if (flags & SDL_HWSURFACE) {
+    NDL_OpenCanvas(&width, &height);
+  }
   return SDL_CreateRGBSurface(flags, width, height, bpp,
       DEFAULT_RMASK, DEFAULT_GMASK, DEFAULT_BMASK, DEFAULT_AMASK);
 }

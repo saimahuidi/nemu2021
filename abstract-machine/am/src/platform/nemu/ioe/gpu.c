@@ -29,7 +29,7 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   if (ctl->pixels != NULL) {
     uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
     uint32_t pos = ctl->x + ctl->y * screen_width;
-    uint32_t *buf = ctl->pixels;
+    const uint32_t *buf = ctl->pixels;
     for (int i = 0; i < ctl->h; i++) {
       uint32_t pos_t = pos + i * screen_width;
       uint32_t pos_b = i * ctl->w;

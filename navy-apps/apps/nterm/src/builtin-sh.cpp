@@ -1,8 +1,11 @@
 #include <nterm.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <SDL.h>
 
+void echo(char *par);
 char handle_key(SDL_Event *ev);
 
 static void sh_printf(const char *format, ...) {
@@ -23,6 +26,19 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  char order[64];
+  char par[64];
+  char *const *a;
+  sscanf(cmd, "%s %s", order, par);
+  if (!strcmp(order, "echo")) {
+    echo(par);
+  } else {
+    execvp(order, a);
+  }
+}
+
+void echo(char *par) {
+  sh_printf("%s\n", par);
 }
 
 void builtin_sh_run() {
