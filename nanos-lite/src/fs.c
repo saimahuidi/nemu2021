@@ -33,6 +33,7 @@ void init_fs() {
   // TODO: initialize the size of /dev/fb
   file_table[FD_FB].size = io_read(AM_GPU_CONFIG).vmemsz * 4;
 }
+
 int fs_open(const char *pathname, int flags, int mode) {
   int i;
   for (i = 0; file_table[i].name; i++) {
@@ -41,8 +42,7 @@ int fs_open(const char *pathname, int flags, int mode) {
       return i;
     }
   }
-
-  assert(NULL);
+  return -1;
 }
 
 size_t fs_read(int fd, void *buf, size_t len) {

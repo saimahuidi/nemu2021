@@ -100,6 +100,11 @@ def_EHelper(csrrw) {
       cpu.mcause = *dsrc1;
       *ddest = *s0;
       break;
+    case 0x180:
+      *s0 = cpu.satp;
+      cpu.satp = *dsrc1;
+      *ddest = *s0;
+      break;
     default:
       panic("no implement\n");
   }
@@ -109,30 +114,35 @@ def_EHelper(csrrs) {
   switch (id_src2->imm) {
     case 0x300:
       *s0 = cpu.mstatus;
-      cpu.mstatus = *dsrc1;
+      cpu.mstatus |= *dsrc1;
       *ddest = *s0;
       break;
     case 0x341:
       *s0 = cpu.mepc;
-      cpu.mepc = *dsrc1;
+      cpu.mepc |= *dsrc1;
       *ddest = *s0;
       break;
     case 0x342:
       *s0 = cpu.mcause;
-      cpu.mcause = *dsrc1;
+      cpu.mcause |= *dsrc1;
+      *ddest = *s0;
+      break;
+    case 0x180:
+      *s0 = cpu.satp;
+      cpu.satp |= *dsrc1;
       *ddest = *s0;
       break;
   }
 }
 
 def_EHelper(csrrwi) {
-
+  panic("csrrwi not implemented");
 }
 
 def_EHelper(csrrsi) {
-
+  panic("csrrsi not implemented");
 }
 
 def_EHelper(csrrci) {
-
+  panic("csrrci not implemented");
 }

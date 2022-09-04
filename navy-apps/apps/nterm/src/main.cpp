@@ -1,6 +1,8 @@
 #include <nterm.h>
 #include <SDL.h>
 #include <SDL_bdf.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 static const char *font_fname = "/share/fonts/Courier-7.bdf";
@@ -12,6 +14,7 @@ void builtin_sh_run();
 void extern_app_run(const char *app_path);
 
 int main(int argc, char *argv[]) {
+  printf("666\n");
   setenv("PATH", "/bin", 1);
   SDL_Init(0);
   font = new BDF_Font(font_fname);
@@ -23,9 +26,13 @@ int main(int argc, char *argv[]) {
   screen = SDL_SetVideoMode(win_w, win_h, 32, SDL_HWSURFACE);
 
   term = new Terminal(W, H);
-
-  if (argc < 2) { builtin_sh_run(); }
-  else { extern_app_run(argv[1]); }
+  printf("%d %s \n", argc, argv[0]);
+  // if (!strcmp("--start", argv[0])) {
+  //   printf("argc = %d argv = %s\n", argc, argv[0]);
+  // }
+  // if (argc < 2) { builtin_sh_run(); }
+  // else { extern_app_run(argv[1]); }
+  builtin_sh_run();
 
   // should not reach here
   assert(0);

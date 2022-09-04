@@ -33,7 +33,7 @@ static void sh_handle_cmd(const char *cmd) {
   if (!strcmp(order, "echo")) {
     echo(par);
   } else {
-    execvp(order, a);
+    // execvp(order, a);
   }
 }
 

@@ -1,10 +1,18 @@
+#include "am.h"
+#include "memory.h"
 #include <proc.h>
+#include <stdint.h>
+#include <string.h>
 
 #define MAX_NR_PROC 4
 
-static PCB pcb[MAX_NR_PROC] __attribute__((used)) = {};
+PCB pcb[MAX_NR_PROC] __attribute__((used)) = {};
+static int num = 0;
 static PCB pcb_boot = {};
+static int next = 0;
 PCB *current = NULL;
+
+void *get_entry(PCB *pcb, const char *filename);
 
 void switch_boot_pcb() {
   current = &pcb_boot;
@@ -19,13 +27,19 @@ void hello_fun(void *arg) {
   }
 }
 
-void init_proc() {
-  switch_boot_pcb();
 
+char *argv[] = {"/bin/menu", NULL};
+char *envp[] = {"PATH=/bin", NULL};
+void init_proc() {
   Log("Initializing processes...");
 
+  context_kload(&pcb[num++], hello_fun, (void *)1);
+  context_uload(&pcb[num++], "/bin/nterm", argv, envp);
+
+  switch_boot_pcb();
+
   // load program here
-  naive_uload(NULL, "/bin/nterm");
+  // naive_uload(NULL, "/bin/nterm");
 }
 
 Context* schedule(Context *prev) {
