@@ -70,12 +70,12 @@ def_EHelper(bgeu) {
 }
 
 def_EHelper(ecall) {
-  *s0 = isa_raise_intr(8, s->pc);
+  *s0 = isa_raise_intr(8, s->dnpc);
   rtl_jr(s, s0);
 }
 
 def_EHelper(mret) {
-  rtl_j(s, cpu.mepc + 4);
+  rtl_j(s, cpu.mepc);
 }
 
 def_EHelper(csrrw) {

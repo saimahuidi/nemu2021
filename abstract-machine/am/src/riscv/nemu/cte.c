@@ -36,7 +36,7 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 }
 
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-  Context *context = (Context *)(kstack.end + sizeof(Context));
+  Context *context = (Context *)(kstack.end - sizeof(Context));
   for (int i = 0; i < 32; i++) {
     context->gpr[i] = 0;
   } 

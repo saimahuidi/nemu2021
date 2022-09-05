@@ -27,6 +27,9 @@ void free_page(void *p) {
 /* The brk() system call handler. */
 int mm_brk(uintptr_t brk) {
   for (; current->max_brk < brk; current->max_brk += PGSIZE) {
+    // printf("max_brk = %d\n", current->max_brk);
+    // printf("as.pgsize = %d\n", current->as.pgsize);
+    // printf("as.start %d end %d \n", current->as.area.start, current->as.area.end);
     map(&current->as, (void *)current->max_brk, new_page(1), 0);
   }
   return 0;

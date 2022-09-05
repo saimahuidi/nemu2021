@@ -60,6 +60,8 @@ void __am_get_cur_as(Context *c) {
 }
 
 void __am_switch(Context *c) {
+  // printf("pdir = %p\n", c->pdir);
+  
   if (vme_enable && c->pdir != NULL) {
     set_satp(c->pdir);
   }
@@ -84,6 +86,13 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   
   uint32_t VPN1 = (uint32_t)va >> 22;
   PTEnode *primaryEntry = (PTEnode *)as->ptr;
+  // printf("as = %p\n", as);
+
+  // if (as->ptr == NULL) {
+  //   printf("as.pgsize = %d\n", as->pgsize);
+  //   printf("as.start %d end %d \n", as->area.start, as->area.end);
+  // }
+  // printf("pte = %p\n" ,primaryEntry);
   if (!primaryEntry[VPN1].V) {
     // set the entry
     uintptr_t PPN = (uint32_t)pgalloc_usr(PGSIZE);
@@ -114,7 +123,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-  Context *context = (Context *)(kstack.end + sizeof(Context));
+  Context *context = (Context *)(kstack.end - sizeof(Context));
   for (int i = 0; i < 32; i++) {
     context->gpr[i] = 0;
   } 
