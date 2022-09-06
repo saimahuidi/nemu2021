@@ -15,9 +15,13 @@ static Context* do_event(Event e, Context* c) {
       do_syscall(c);
       break;
 
+    case EVENT_IRQ_TIMER:
+      c = schedule(c);
+      break;
+
     default: panic("Unhandled event ID = %d", e.event);
   }
-  // printf("context = %p\n", c);
+  // printf("MIE = %p\n", c->MIE);
   // printf("max_brk = %p\n", pcb[1].max_brk);
   return c;
 }

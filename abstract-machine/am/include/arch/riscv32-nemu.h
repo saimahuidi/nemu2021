@@ -2,7 +2,20 @@
 #define ARCH_H__
 
 struct Context {
-  uintptr_t gpr[32], mcause, mstatus, mepc;
+  uintptr_t gpr[32]; 
+  uintptr_t mcause; 
+  union {
+    struct {
+      uintptr_t bits0_2   : 3;
+      uintptr_t MIE       : 1;
+      uintptr_t bits4_6   : 3;
+      uintptr_t MPIE      : 1;
+      uintptr_t bits8_31  : 24;
+    };
+    uintptr_t mstatus;
+  };
+  uintptr_t mepc;
+  uintptr_t mscratch;
   void *pdir;
 };
 

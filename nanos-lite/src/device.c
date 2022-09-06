@@ -21,7 +21,6 @@ static const char *keyname[256] __attribute__((used)) = {
 };
 
 size_t serial_write(const void *buf, size_t offset, size_t len) {
-  yield();
   const char *string = buf;
   size_t count_t = 0;
   while (*string && count_t < len) {
@@ -32,7 +31,6 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
 }
 
 size_t events_read(void *buf, size_t offset, size_t len) {
-  yield();
   AM_INPUT_KEYBRD_T keyboard;
   ioe_read(AM_INPUT_KEYBRD, &keyboard);
   // read no key
@@ -51,7 +49,6 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
-  yield();
   AM_GPU_CONFIG_T gc;
   ioe_read(AM_GPU_CONFIG, &gc);
   int pos = offset / 4;

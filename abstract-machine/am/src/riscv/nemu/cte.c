@@ -9,13 +9,20 @@ Context* __am_irq_handle(Context *c) {
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      case 8:
+      case IRQ_SYSCALL:
         if (c->GPR1 == -1) {
-          ev.event = EVENT_YIELD; break;}
-        ev.event = EVENT_SYSCALL; break;
+          ev.event = EVENT_YIELD; 
+          break;
+        }
+        ev.event = EVENT_SYSCALL; 
+        break;
+      case IRQ_TIMER:
+        ev.event = EVENT_IRQ_TIMER;
+        break;
       default: ev.event = EVENT_ERROR; break;
     }
 
+    // printf("event = %d\n", ev.event);
     c = user_handler(ev, c);
     assert(c != NULL);
   }
@@ -40,12 +47,15 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   for (int i = 0; i < 32; i++) {
     context->gpr[i] = 0;
   } 
-  context->gpr[2] = (uintptr_t)kstack.end;
-  context->gpr[10] = (uintptr_t)arg;
-  context->mstatus = 0x1800;
-  context->mepc    = (uintptr_t)entry;
-  context->mcause  = 8;
-  context->pdir    = NULL;
+  // context->gpr[2]   = (uintptr_t)kstack.end;
+  context->gpr[10]  = (uintptr_t)arg;
+  context->mstatus  = 0x1800;
+  context->MIE      = 0;
+  context->MPIE     = 1;
+  context->mepc     = (uintptr_t)entry;
+  context->mcause   = 8;
+  context->pdir     = NULL;
+  context->mscratch = 0;
   return context;
 }
 

@@ -75,6 +75,8 @@ def_EHelper(ecall) {
 }
 
 def_EHelper(mret) {
+  cpu.MIE = cpu.MPIE;
+  cpu.MPIE = 1;
   rtl_j(s, cpu.mepc);
 }
 
@@ -105,6 +107,11 @@ def_EHelper(csrrw) {
       cpu.satp = *dsrc1;
       *ddest = *s0;
       break;
+    case 0x340:
+      *s0 = cpu.mscratch;
+      cpu.mscratch = *dsrc1;
+      *ddest = *s0;
+      break;
     default:
       panic("no implement\n");
   }
@@ -132,11 +139,37 @@ def_EHelper(csrrs) {
       cpu.satp |= *dsrc1;
       *ddest = *s0;
       break;
+    case 0x340:
+      *s0 = cpu.mscratch;
+      cpu.mscratch |= *dsrc1;
+      *ddest = *s0;
+      break;
   }
 }
 
 def_EHelper(csrrwi) {
-  panic("csrrwi not implemented");
+  switch (id_src2->imm) {
+    case 0x300:
+      *ddest = cpu.mstatus;
+      cpu.mstatus = id_src1->imm;
+      break;
+    case 0x341:
+      *ddest = cpu.mepc;
+      cpu.mepc = id_src1->imm;
+      break;
+    case 0x342:
+      *ddest = cpu.mcause;
+      cpu.mcause = id_src1->imm;
+      break;
+    case 0x180:
+      *ddest = cpu.satp;
+      cpu.satp = id_src1->imm;
+      break;
+    case 0x340:
+      *ddest = cpu.mscratch;
+      cpu.mscratch = id_src1->imm;
+      break;
+  }
 }
 
 def_EHelper(csrrsi) {

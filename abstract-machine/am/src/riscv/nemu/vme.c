@@ -1,6 +1,7 @@
 #include <am.h>
 #include <nemu.h>
 #include <klib.h>
+#include <stdint.h>
 
 static AddrSpace kas = {};
 static void* (*pgalloc_usr)(int) = NULL;
@@ -60,7 +61,7 @@ void __am_get_cur_as(Context *c) {
 }
 
 void __am_switch(Context *c) {
-  // printf("pdir = %p\n", c->pdir);
+  // printf("MIE = %p\n", c->MIE);
   
   if (vme_enable && c->pdir != NULL) {
     set_satp(c->pdir);
@@ -127,10 +128,13 @@ Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   for (int i = 0; i < 32; i++) {
     context->gpr[i] = 0;
   } 
-  context->gpr[2] = (uintptr_t)kstack.end;
-  context->mstatus = 0x1800;
-  context->mepc    = (uintptr_t)entry;
-  context->mcause  = 8;
-  context->pdir    = as->ptr;
+  context->gpr[2]   = (uintptr_t)kstack.end;
+  context->mstatus  = 0x1800;
+  context->MIE      = 0;
+  context->MPIE     = 1;
+  context->mepc     = (uintptr_t)entry;
+  context->mcause   = 8;
+  context->pdir     = as->ptr;
+  context->mscratch = (uintptr_t)kstack.end;
   return context;
 }

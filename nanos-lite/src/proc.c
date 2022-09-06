@@ -24,7 +24,7 @@ void hello_fun(void *arg) {
     // printf("hello max_brk = %p\n", &pcb[1].max_brk);
     Log("Hello World from Nanos-lite with arg '%p' for the %dth time!", (uintptr_t)arg, j);
     j ++;
-    yield();
+    // yield();
   }
 }
 
@@ -34,7 +34,7 @@ char *envp[] = {"PATH=/bin", NULL};
 void init_proc() {
   Log("Initializing processes...");
 
-  context_kload(&pcb[num++], hello_fun, (void *)1);
+  context_uload(&pcb[num++], "/bin/hello", NULL, NULL);
   context_uload(&pcb[num++], "/bin/nterm", argv, envp);
 
   switch_boot_pcb();
@@ -51,7 +51,7 @@ Context* schedule(Context *prev) {
   current = &pcb[next];
 
   next++;
-  // printf("current cp = %p\n", current->cp);
+  // printf("current cp = %p mie = %d\n", current->cp, pcb[0].cp->MPIE);
 
   return current->cp;
 }

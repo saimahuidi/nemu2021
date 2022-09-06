@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "../monitor/sdb/sdb.h"
+#include "common.h"
+#include "isa.h"
 #include "macro.h"
 
 
@@ -17,7 +19,7 @@
 #define MAX_INSTR_TO_PRINT 10
 #define IRINGBUFSIZE       16
 
-CPU_state cpu = {.mstatus = 0x1800};
+CPU_state cpu = {.mstatus = 0x1800, .mscratch = 0};
 uint64_t g_nr_guest_instr = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
@@ -123,6 +125,10 @@ void cpu_exec(uint64_t n) {
     trace_and_difftest(&s, cpu.pc);
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
+    word_t intr = isa_query_intr();
+    if (intr != INTR_EMPTY) {
+      cpu.pc = isa_raise_intr(intr, cpu.pc);
+    }
   }
 
   uint64_t timer_end = get_time();
